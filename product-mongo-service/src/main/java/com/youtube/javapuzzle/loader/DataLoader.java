@@ -11,8 +11,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 @Component
 public class DataLoader implements ApplicationRunner {
@@ -31,16 +30,20 @@ public class DataLoader implements ApplicationRunner {
 
     private void insertRealisticData() {
         Faker faker = new Faker();
-
+        List<String> categoriesList = new ArrayList<>(Arrays.asList("mobile","computer","laptop","beauty-products","clothing","shoes","gardening"));
+        for(String category: categoriesList){
+            categoryRepository.save(Category.builder()
+                            .name(category)
+                    .build());
+        }
         for (int i = 0; i < 20; i++) {
             // Insert categories
-            Category category = new Category();
-            category.setName(faker.commerce().department());
-            categoryRepository.save(category);
-
-            // Insert products
+            int numberOfCategory  = new Random().nextInt(4)+1;
             Set<Category> categories = new HashSet<>();
-            categories.add(category);
+            for (int j = 0; j < numberOfCategory; j++) {
+                Category category = categoryRepository.findByName(categoriesList.get(j)).get();
+                categories.add(category);
+            }
 
             Product product = new Product();
             product.setName(faker.commerce().productName());
