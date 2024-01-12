@@ -8,11 +8,14 @@ import com.youtube.javapuzzle.repository.ProductRepository;
 import com.youtube.javapuzzle.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 import product.ProductRequest;
 import product.ProductResponse;
 import product.exception.ProductNotFoundException;
 
+import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -25,7 +28,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final ProductMapper productMapper;
-
+    private final MongoTemplate mongoTemplate;
     @Override
     public ProductResponse createProduct(ProductRequest productRequest) {
 //        Set<Category> categories = new HashSet<>();
@@ -45,7 +48,7 @@ public class ProductServiceImpl implements ProductService {
 //        }
         Set<Category> categories = productRequest.getCategories().stream()
                 .map(categoryRequest ->
-                        categoryRepository.findByName(categoryRequest.getName())
+                        categoryRepository.findByName(categoryRequest.getName()).stream().findFirst()
                                 .orElseGet(() -> {
                                     Category newCategory = Category.builder()
                                             .name(categoryRequest.getName())
@@ -92,7 +95,7 @@ public class ProductServiceImpl implements ProductService {
             // Update categories
             Set<Category> updatedCategories = updatedProduct.getCategories().stream()
                     .map(categoryRequest ->
-                            categoryRepository.findByName(categoryRequest.getName())
+                            categoryRepository.findByName(categoryRequest.getName()).stream().findFirst()
                                     .orElseGet(() -> {
                                         Category newCategory = new Category();
                                         newCategory.setName(categoryRequest.getName());
@@ -102,7 +105,6 @@ public class ProductServiceImpl implements ProductService {
                     .collect(Collectors.toSet());
 
             existingProduct.setCategories(updatedCategories);
-
 
             return productRepository.save(existingProduct);
         } else {
@@ -114,5 +116,24 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public void deleteProduct(String productId) {
         productRepository.deleteById(productId);
+    }
+
+    @Override
+    public List<Product> findProductsByCategoryName(String categoryName) {
+        Optional<Category> category = categoryRepository.findByName(categoryName).stream().findFirst();
+        if(!category.isPresent()) {
+            return Collections.emptyList();
+        }
+        return productRepository.findByCategoriesContains(category.get());
+    }
+
+    @Override
+    public List<Product> getProductsByFullTextSearch(String name) {
+        return productRepository.findByNameRegex(name);
+    }
+
+    @Override
+    public List<Product> getProductsAbovePrice(BigDecimal minPrice) {
+        return productRepository.findByPriceGreaterThan(minPrice);
     }
 }

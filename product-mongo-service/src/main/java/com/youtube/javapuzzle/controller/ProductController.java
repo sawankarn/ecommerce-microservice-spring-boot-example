@@ -18,6 +18,7 @@ import product.CategoryResponse;
 import product.ProductRequest;
 import product.ProductResponse;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -56,6 +57,17 @@ public class ProductController {
         return new ResponseEntity<>(products, HttpStatus.OK);
     }
 
+    @GetMapping("/fullTextSearch")
+    public ResponseEntity<List<Product>> getProductsByFullTextSearch(@RequestParam String name) {
+        List<Product> products = productService.getProductsByFullTextSearch(name);
+        return new ResponseEntity<>(products, HttpStatus.OK);
+    }
+
+    @GetMapping("/price-greater-than/{price}")
+    public List<Product> getByPrice(@PathVariable BigDecimal price) {
+        return productService.getProductsAbovePrice(price);
+    }
+
     @SneakyThrows
     @PutMapping("/{id}")
     public ResponseEntity<Product> updateProduct(@PathVariable String id, @RequestBody Product updatedProduct) {
@@ -71,5 +83,11 @@ public class ProductController {
     public ResponseEntity<Void> deleteProduct(@PathVariable String id) {
         productService.deleteProduct(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @GetMapping("/byCategoryName/{categoryName}")
+    public ResponseEntity<List<Product>> findProductsByCategoryName(@PathVariable String categoryName) {
+        List<Product> products = productService.findProductsByCategoryName(categoryName);
+        return new ResponseEntity<>(products, HttpStatus.OK);
     }
 }

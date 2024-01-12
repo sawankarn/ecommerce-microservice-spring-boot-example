@@ -1,0 +1,3 @@
+# Project exclude paths
+/common-dtos/target/
+/product-mongo-service/target/

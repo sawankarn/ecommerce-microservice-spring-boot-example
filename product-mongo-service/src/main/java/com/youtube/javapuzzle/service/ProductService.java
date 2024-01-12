@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import product.ProductRequest;
 import product.ProductResponse;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface ProductService {
@@ -22,4 +23,9 @@ public interface ProductService {
 
     void deleteProduct(String productId);
 
+    List<Product> findProductsByCategoryName(String categoryName);
+
+    List<Product> getProductsByFullTextSearch(String name);
+
+    List<Product> getProductsAbovePrice(BigDecimal price);
 }
